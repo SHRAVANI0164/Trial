@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import os
-import HandTrackingMin as htm
+import HandTrackingModule as htm
 
 folderPath = "Header"
 
@@ -53,16 +53,27 @@ while True:
         print("Error: Failed to capture image")
         continue
 
-    # 2. Flip the image horizontally before placing header
+
     img = cv2.flip(img, 1)
 
-    # 3. Find Hand Landmarks
+    # 2. Find Hand Landmarks
     img = detector.findHands(img)
+    lmList = detector.findPosition(img,draw=False)
 
-    # 4. Overlay the header **AFTER flipping**
+    if len(lmList)!=0:
+        print(lmList)
+
+        #tip of index and middle fingers
+        x1,y1 = lmList[8][1:]
+        x2, y2 = lmList[12][1:]
+
+
+
+    # 3. Check which fingers are up
     img[0:125, 0:1280] = header
 
-    # 5. Display the image
+    # 4. If Selection Mode - Two finger are up
+    # 5. If Drawing Mode - Index Finger is up
     cv2.imshow("Image", img)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
