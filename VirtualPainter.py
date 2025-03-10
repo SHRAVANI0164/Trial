@@ -3,6 +3,13 @@ import numpy as np
 import os
 import HandTrackingModule as htm
 
+######################
+brushThickness = 15
+eraserThickness = 100
+
+
+
+#######################
 folderPath = "Header"
 
 # Check if the folder exists
@@ -33,6 +40,8 @@ if len(overlayList) == 0:
     exit()
 
 header = cv2.resize(overlayList[0], (1280, 125))  # Resize to fit
+drawColor = (255,0,255)
+
 
 # Open webcam
 cap = cv2.VideoCapture(0)  # Use 0 for default camera
@@ -44,6 +53,9 @@ if not cap.isOpened():
     exit()
 
 detector = htm.handDetector(detectionCon=0.85)
+
+xp,yp = 0,0
+imgCanvas = np.zeros((720,1280,3),np.uint8)
 
 while True:
     # 1. Import Image
@@ -61,7 +73,8 @@ while True:
     lmList = detector.findPosition(img,draw=False)
 
     if len(lmList)!=0:
-        print(lmList)
+
+        # print(lmList)
 
         #tip of index and middle fingers
         x1,y1 = lmList[8][1:]
@@ -69,12 +82,66 @@ while True:
 
 
 
-    # 3. Check which fingers are up
-    img[0:125, 0:1280] = header
+        # 3. Check which fingers are up
 
-    # 4. If Selection Mode - Two finger are up
-    # 5. If Drawing Mode - Index Finger is up
+        fingers = detector.fingersUp()
+        # print(fingers)
+
+        # 4. If Selection Mode - Two finger are up
+        if fingers[1] and fingers[2]:
+            xp, yp = 0, 0
+            print("Selection Mode")
+            # Checking for the click
+            if y1 <125:
+                if 250<x1<450:
+                    header = overlayList[0]
+                    drawColor = (255,0,255)
+                elif 550 < x1 < 750:
+                    header = overlayList[1]
+                    drawColor = (255, 0, 0)
+                elif 800 < x1 < 950:
+                    header = overlayList[2]
+                    drawColor = (0, 255, 0)
+                elif 1050 < x1 < 1200:
+                    header = overlayList[3]
+                    drawColor = (0, 0, 0)
+            cv2.rectangle(img, (x1, y1 - 25), (x2, y2 + 25), drawColor, cv2.FILLED)
+
+        # 5. If Drawing Mode - Index Finger is up
+        if fingers[1] and fingers[2]==False:
+            cv2.circle(img,(x1,y1),15,drawColor,cv2.FILLED)
+            print("Drawing Mode Mode")
+
+            if xp == 0 and yp == 0:
+                xp,yp = x1,y1
+
+            if drawColor == (0,0,0):
+                cv2.line(img, (xp, yp), (x1, y1), drawColor, eraserThickness)
+                cv2.line(imgCanvas, (xp, yp), (x1, y1), drawColor, eraserThickness)
+            else:
+                cv2.line(img,(xp,yp),(x1,y1),drawColor,brushThickness)
+                cv2.line(imgCanvas, (xp, yp), (x1, y1), drawColor, brushThickness)
+
+            xp,yp = x1,y1
+
+        else:
+            xp, yp = 0, 0
+
+    imgGray = cv2.cvtColor(imgCanvas,cv2.COLOR_BGR2GRAY)
+    _, imgInv = cv2.threshold(imgGray,50,255,cv2.THRESH_BINARY_INV)
+    imgInv = cv2.cvtColor(imgInv,cv2.COLOR_GRAY2BGR)
+    img = cv2.bitwise_and(img,imgInv)
+    img = cv2.bitwise_or(img,imgCanvas)
+
+
+
+
+    # Setting the header image
+    img[0:125, 0:1280] = header
+    img = cv2.bitwise_or(img, imgCanvas)
+
     cv2.imshow("Image", img)
+    cv2.imshow("Canvas", imgCanvas)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break  # Press 'q' to exit the loop
