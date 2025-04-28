@@ -25,6 +25,7 @@ export default function App() {
         <Route path="/login"  element={!user ? <Login/>    : <Navigate to="/dashboard"/>}/>
         <Route path="/signup" element={!user ? <Signup/>   : <Navigate to="/dashboard"/>}/>
         <Route path="/dashboard" element={user ? <Dashboard/> : <Navigate to="/login"/>}/>
+        <Route path="/landing" element={user ? <Landing/> : <Navigate to="/dashboard"/>}/>
         <Route path="/profile"   element={user ? <Profile/>   : <Navigate to="/login"/>}/>
 
         <Route path="*" element={<Navigate to="/" />} />

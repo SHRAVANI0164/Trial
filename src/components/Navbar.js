@@ -10,7 +10,7 @@ export default function Navbar({ user }) {
 
   return (
     <nav className="navbar container">
-      <Link to="/" className="logo">MyApp</Link>
+      <Link to="/" className="logo">Skywriter</Link>
       <div className="nav-links">
         {user ? (
           <>

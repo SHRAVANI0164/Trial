@@ -9,7 +9,7 @@ export default function Header({ user }) {
 
   return (
     <header className="header container flex space-between">
-      <h1 className="logo">MyApp</h1>
+      <h1 className="logo">Skywriter</h1>
 
       <div className="header-links">
         {user ? (
